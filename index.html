@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kingshot Red Gear Planner</title>
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--ink:#1d1c1a;--mut:#6b675f;--line:#e4e1da;--acc:#b3261e;--acc2:#7a1a14;--good:#1f6f43;--warn:#9a6200;--inf:#3b5b92;--cav:#8a5a17;--arch:#2f7a55}
+@media (prefers-color-scheme:dark){:root{--bg:#161514;--card:#201f1d;--ink:#ece9e3;--mut:#a19c92;--line:#34322e;--acc:#e0574d;--acc2:#ff8a80;--good:#5fc08a;--warn:#e0a640;--inf:#7ea2e0;--cav:#d9a253;--arch:#6cc596}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:16px;margin:0 0 10px}
+h3{font-size:14px;margin:14px 0 6px}
+p.sub{color:var(--mut);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+.grid{display:grid;gap:16px}
+@media(min-width:900px){.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}}
+table{border-collapse:collapse;width:100%}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-size:12px;color:var(--mut);font-weight:600;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+input[type=number],select{width:72px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+select{width:auto}
+input.w{width:90px}
+.tag{display:inline-block;white-space:nowrap;padding:1px 7px;border-radius:999px;font-size:12px;font-weight:600;color:#fff}
+.t-inf{background:var(--inf)}.t-cav{background:var(--cav)}.t-arch{background:var(--arch)}
+.mut{color:var(--mut)}.warn{color:var(--warn)}.good{color:var(--good)}
+.btn{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:6px 12px;border-radius:7px;cursor:pointer;font:inherit}
+.btn:hover{border-color:var(--acc)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.kpis{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-width:140px}
+.kpi b{display:block;font-size:20px}
+.kpi span{font-size:12px;color:var(--mut)}
+tr.inbud td{background:color-mix(in srgb,var(--good) 9%,transparent)}
+tr.top td:first-child{font-weight:700;color:var(--acc)}
+details summary{cursor:pointer;font-weight:600}
+.scroll{overflow-x:auto}
+.note{font-size:12.5px;color:var(--mut)}
+.pill{font-size:11px;padding:1px 6px;border-radius:5px;border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+.pill.exp{border-color:var(--acc);color:var(--acc)}
+details.info{margin:8px 0 0}details.info>summary{font-size:12.5px;font-weight:600;color:var(--mut);cursor:pointer;list-style:none;display:inline-block;padding:2px 0}details.info>summary::-webkit-details-marker{display:none}details.info[open]>summary{color:var(--ink)}details.info .note{margin:6px 0 0;padding:8px 10px;border-left:3px solid var(--line);background:color-mix(in srgb,var(--line) 25%,transparent);border-radius:0 6px 6px 0}details.info .note p{margin:0 0 6px}
+input.bad{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+.more{text-align:center;margin-top:10px}
+#seq td{font-size:13px}.nw{white-space:nowrap}.sm{font-size:11.5px}
+input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--acc) 45%,transparent);outline-offset:1px}
+@media (prefers-color-scheme:dark){.tag{color:#14130f}}
+@media(max-width:640px){input[type=number]{width:60px}input.w{width:72px}.wrap{padding:12px 8px 40px}.card{padding:12px}h1{font-size:19px}th,td{padding:5px 5px}.kpi{min-width:0;flex:1 1 140px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Kingshot Red Gear Upgrade Planner</h1>
+<p class="sub">Plans which red hero gear upgrades (imbues with Mithril, mastery with Forgehammers) give the most Expedition power for your resources, based on your gear, your governor stats and your stat priorities. Everything is editable and saved in this browser.</p>
+
+<div class="card">
+  <details>
+    <summary>How to use</summary>
+    <ol style="margin:8px 0 0;padding-left:20px">
+      <li><b>Your gear:</b> enter the enhancement level (100–200) and mastery (10–20) for all 12 red pieces.</li>
+      <li><b>Weights:</b> keep the Default values unless your march is unusual.</li>
+      <li><b>Governor stats:</b> copy your Expedition bonuses from the in-game Bonus Overview. Put the Squad bonuses in the first row and each troop's own bonuses below it.</li>
+      <li><b>Resources:</b> set what hammers and Mythic gear are worth to you, and enter your stock.</li>
+      <li>Choose <b>Ideal spend</b> for the long-term order, or <b>Spend all</b> to use up your current stock in the best way.</li>
+    </ol>
+    <p class="note">Your values are saved in this browser only. To move them to another device or send them to a friend, use <b>Export setup</b> and <b>Import setup</b> below.</p>
+  </details>
+  <div class="row" style="margin-top:10px">
+    <button class="btn" id="expBtn">Export setup</button>
+    <button class="btn" id="impBtn">Import setup</button>
+    <span class="note" id="ioMsg"></span>
+  </div>
+  <div id="ioBox" style="display:none;margin-top:8px">
+    <textarea id="ioText" rows="4" style="width:100%;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px"></textarea>
+    <div class="row" style="margin-top:6px"><button class="btn" id="ioApply" style="display:none">Load this setup</button><button class="btn" id="ioCopy" style="display:none">Copy</button><button class="btn" id="ioClose">Close</button></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="row" style="justify-content:space-between"><h2 style="margin:0">1 · Your gear</h2><button class="btn" data-reset="gear">Default values</button></div>
+  <div class="scroll"><table id="gearTable"></table></div>
+  <details class="info"><summary>ℹ What these numbers mean</summary><div class="note">Lethality comes from the Helmet and Boots, Health from the Chest and Gloves. Pieces start as gold (Mythic) gear at level 0–100. Mastery Forging unlocks at +20 and goes from 0 to 20. At +100 with Mastery 10, the piece ascends to Red (costs 2 Mythic gear) and continues to +200. Red breakpoints need mastery: +120 needs M11, +140 M12, +160 M13, +180 M14 and +200 M15. The stat shown is the piece&#39;s current Lethality or Health bonus.</div></details>
+  <div id="gearWarn" class="warn"></div>
+</div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">2 · Stat priority weights</h2>
+      <div class="row"><button class="btn" data-reset="weights">Default values</button></div></div>
+    <div class="scroll" style="margin-top:8px"><table id="wTable" style="max-width:620px"></table></div>
+    <details class="info"><summary>ℹ Why these weights</summary><div class="note" id="wNote"></div></details>
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">3 · Governor stats &amp; imbue value</h2><button class="btn" data-reset="stats">Default values</button></div>
+    <div id="convBox"></div>
+    <details class="info"><summary>ℹ How stats are valued</summary><div class="note">The planner uses the multiplicative model, where damage dealt ∝ (1+Atk)(1+Leth) and damage taken ∝ 1 ÷ (1+Def)(1+HP). Each upgrade is scored by how much it raises that troop's <i>offense</i> (Atk × Leth) and <i>survival</i> (Def × HP), so whichever stat is lower gets the bigger boost. That keeps Attack/Lethality and Defense/Health balanced. Your totals are updated after every planned step, so returns diminish. The Lethality weight of a troop is used as its offense weight and the Health weight as its survival weight. Conquest bonuses are ignored.</div></details>
+  </div>
+
+<div class="card">
+  <div class="row" style="justify-content:space-between">
+    <h2 style="margin:0">4 · Best bang-for-buck sequence</h2>
+<button class="btn" data-reset="spend">Default values</button>
+  </div>
+  <div class="grid g2" style="margin-top:12px">
+    <div>
+      <h3 style="margin-top:0">What resources are worth (in Mithril)</h3>
+      <div class="row"><label>1 Forgehammer = <input type="number" step="0.01" min="0" id="cv_ham"> Mithril</label></div>
+      <div class="row" style="margin-top:6px"><label>1 Mythic gear = <input type="number" step="0.05" min="0" id="cv_myth"> Mithril</label></div>
+      <details class="info"><summary>ℹ How to set these</summary><div class="note">These rates put the three resources into one cost so they can be compared. The defaults use Arena Shop prices: Mithril 10,000 tokens, Forgehammer 2,500, Mythic gear chest 12,000. If hammers are easy for you to get (Bear Hunt and so on), lower the hammer value. If Mythic gear is your bottleneck, raise its value. XP is not counted.</div></details>
+    </div>
+    <div>
+      <h3 style="margin-top:0">What I have (optional)</h3>
+      <div class="row"><label>Mithril <input type="number" min="0" id="inv_mith" class="w" placeholder="∞"></label><label>Hammers <input type="number" min="0" id="inv_ham" class="w" placeholder="∞"></label><label>Mythic gear <input type="number" min="0" id="inv_myth" class="w" placeholder="∞"></label></div>
+      <p class="note">Blank = unlimited. Upgrades you can afford are shown in green.</p>
+    </div>
+  </div>
+  <div class="row" style="margin-top:12px"><b>Mode:</b>
+    <label><input type="radio" name="spmode" value="ideal"> Ideal spend</label>
+    <label><input type="radio" name="spmode" value="all"> Spend all</label></div>
+  <p class="note" id="modeNote" style="margin:4px 0 0"></p>
+  <details class="info"><summary>ℹ Ideal spend vs Spend all</summary><div class="note"><p><b>Ideal spend</b> ranks every upgrade by value per cost, the order you should follow long-term. With stock entered, the green rows are the upcoming upgrades you can already afford. It stops at the first one you can&#39;t.</p><p><b>Spend all</b> builds a plan from your current stock. At each step it takes the highest value-per-cost upgrade that still fits. If the best one is too expensive, it moves on to the next best instead of stopping. This keeps going until nothing fits, so leftovers are as small as possible while the most important upgrades still come first.</p></div></details>
+  <div id="kpis" class="kpis" style="margin-top:12px"></div>
+  <h3>Step 0 · Free levels (XP only)</h3>
+  <div id="free"></div>
+  <h3>Upgrades, in order</h3>
+  <details class="info"><summary>ℹ How to read this table</summary><div class="note">There are two kinds of upgrade. <span class="pill">Mastery</span> adds +1 mastery level, which raises the whole piece's stat by +0.1× base, using hammers and (from M11) Mythic gear. <span class="pill exp">Imbue</span> pays a breakpoint's Mithril and Mythic gear, then levels with XP up to the next cap (e.g. 119 → 139). Mastery and imbue are always separate rows. If an imbue needs a higher mastery (+120 needs M11 and so on), the mastery row comes first, marked &quot;required for next imbue&quot;. <b>Value</b> = weighted stat gain + weighted Expedition imbue. <b>Cost</b> = Mithril + hammers + Mythic gear at your rates. <b>Packages:</b> the planner looks ahead along each piece and ranks several steps together when a weak step leads to a strong one.</div></details>
+  <div class="scroll"><table id="seq"></table></div>
+  <div class="more" id="moreBox"></div>
+</div>
+
+<div class="card">
+  <details>
+    <summary>5 · Game data (edit if the game changes)</summary>
+    <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn" data-reset="data">Default values</button></div>
+    <div class="grid g2" style="margin-top:12px">
+      <div>
+        <h3>Breakpoint costs</h3>
+        <div class="scroll"><table id="bpTable"></table></div>
+        <h3>Stat curve</h3>
+        <div class="row">Gold: stat at +0 <input type="number" id="d_g0" step="0.1">%, plus <input type="number" id="d_gper" step="0.01">% per level</div>
+        <div class="row" style="margin-top:6px">Red: plus <input type="number" id="d_per" step="0.01">% per level after +100</div>
+        <div class="row" style="margin-top:6px">Mastery multiplier = 1 + <input type="number" id="d_mast" step="0.01"> × Mastery</div>
+        <details class="info"><summary>ℹ Formulas</summary><div class="note">Gold (0–100): stat = (15 + 0.35 × L) × (1 + 0.1 × M), so +0 is 15% and +100 is 50% before mastery. Red (101–200): stat = (50 + 0.5 × (L − 100)) × (1 + 0.1 × M), so +200 is 100%. Mastery multiplies: M10 = ×2.0, M20 = ×3.0. Mastery Forging unlocks at +20. Mastery level N costs 10 × N Forgehammers, and from M11 it also costs (N − 10) Mythic gear. Ascension at +101 needs +100 and M10 and costs 2 Mythic gear.</div></details>
+      </div>
+      <div>
+        <h3>Imbue bonuses (same for Inf / Cav / Arch)</h3>
+        <div class="scroll"><table id="imbTable"></table></div>
+      </div>
+    </div>
+    <p class="note">Sources: kingshotoptimizer.com and grindnstrat.com (gold/red stat curve, mastery multipliers), kingshotguide.com and kingshotdata (mastery costs), kingshot.net (mastery requirements), grindnstrat.com and kingshotguide.com (Mithril costs, imbue tables). These are community figures, so check them against your in-game numbers.</p>
+  </details>
+</div>
+</div>
+
+<script>
+const TROOPS=[{id:'inf',name:'Infantry'},{id:'cav',name:'Cavalry'},{id:'arch',name:'Archer'}];
+const SLOTS=[{id:'helm',name:'Helmet',stat:'leth',grp:'HC'},{id:'chest',name:'Chest',stat:'hp',grp:'HC'},{id:'gloves',name:'Gloves',stat:'hp',grp:'GB'},{id:'boots',name:'Boots',stat:'leth',grp:'GB'}];
+const STATN={leth:'Lethality',hp:'Health'};
+const BPS=[101,120,140,160,180,200];      // levels that cost Mithril / Mythic gear (101 = ascension to Red)
+const IMB_BPS=[120,140,160,180,200];  // levels that unlock an imbue bonus
+const PRESETS={
+  default:{label:'Default: open-field expedition (50/20/30)',w:{inf_hp:1.0,arch_leth:0.9,cav_leth:0.65,cav_hp:0.5,inf_leth:0.4,arch_hp:0.3},
+    why:['<b>Inf Health 1.00:</b> infantry stands in the front row and is targeted first every turn. While it stands, your cav and archers keep attacking, so its survival sets how long your damage lasts.',
+         '<b>Arch Lethality 0.90:</b> archers deal the highest single-target damage from the back row, so most of your kills come from here.',
+         '<b>Cav Lethality 0.65:</b> cavalry is the second damage source and can hit enemy archers directly (bypassing their infantry), which is where the enemy damage sits.',
+         '<b>Cav Health 0.50:</b> cavalry becomes the new front line once your infantry falls.',
+         '<b>Inf Lethality 0.40:</b> infantry attacks first but has low attack. It mainly matters against weak troops (Vikings, low tiers).',
+         '<b>Arch Health 0.30:</b> archers are targeted last, except when enemy cavalry dives them.']}
+};
+const DEFW=()=>({...PRESETS.default.w});
+function defaults(){
+  const pieces={};TROOPS.forEach(t=>SLOTS.forEach(s=>pieces[t.id+'_'+s.id]={L:0,M:0}));
+  return {pieces,
+    weights:DEFW(),
+    preset:'default',mode:'ideal',
+    conv:{k:1,totals:{squad:{atk:'',leth:'',def:'',hp:''},inf:{atk:'',leth:'',def:'',hp:''},cav:{atk:'',leth:'',def:'',hp:''},arch:{atk:'',leth:'',def:'',hp:''}}},
+    cost:{ham:0.25,myth:1.2},inv:{mith:'',ham:'',myth:''},
+    data:{g0:15,gper:0.35,per:0.5,mast:0.1,
+      bp:{101:{mith:0,myth:2,req:10},120:{mith:10,myth:3,req:11},140:{mith:20,myth:5,req:12},160:{mith:30,myth:5,req:13},180:{mith:40,myth:10,req:14},200:{mith:50,myth:10,req:15}},
+      imb:{HC:{120:{k:'atk',v:20},140:{k:'conq',v:7.5,t:'Hero Health'},160:{k:'def',v:30},180:{k:'conq',v:15,t:'Hero Attack'},200:{k:'atk',v:50}},
+           GB:{120:{k:'def',v:20},140:{k:'conq',v:7.5,t:'Hero Health'},160:{k:'atk',v:30},180:{k:'conq',v:15,t:'Hero Atk/Def'},200:{k:'def',v:50}}}}};
+}
+// Merge any saved/imported object onto defaults so missing or broken fields can't crash the page
+function isObj(x){return x&&typeof x==='object'&&!Array.isArray(x)}
+function merge(def,src){
+  if(!isObj(def))return (typeof src===typeof def||(typeof def==='string'&&typeof src==='number'))?src:def;
+  const out={};for(const k in def)out[k]=merge(def[k],isObj(src)?src[k]:undefined);
+  return out;
+}
+function normalize(o){
+  const d=defaults();const n=merge(d,o);
+  n.preset=isObj(o)&&typeof o.preset==='string'?o.preset:'default';
+  n.mode=isObj(o)&&o.mode==='all'?'all':'ideal';
+  n.showAll=!!(isObj(o)&&o.showAll);
+  for(const k in n.pieces){const p=n.pieces[k];p.L=Math.round(+p.L);if(isNaN(p.L))p.L=0;p.M=Math.round(+p.M);if(isNaN(p.M))p.M=0}
+  for(const g of ['HC','GB'])for(const b of IMB_BPS){const im=n.data.imb[g][b];if(!['atk','def','conq'].includes(im.k))im.k=d.data.imb[g][b].k;im.v=+im.v||0}
+  return n;
+}
+let S;
+try{S=normalize(JSON.parse(localStorage.getItem('ksRedPlanner')||'null'))}catch(e){S=defaults()}
+function save(){try{localStorage.setItem('ksRedPlanner',JSON.stringify(S))}catch(e){}}
+const $=id=>document.getElementById(id);
+const fmt=(x,d=1)=>(Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+const tagT=t=>`<span class="tag t-${t}">${TROOPS.find(x=>x.id===t).name}</span>`;
+
+function stat(L,M){const d=S.data;const g100=d.g0+d.gper*100;const e=L<=100?d.g0+d.gper*L:g100+d.per*(L-100);return e*(1+d.mast*M)}
+function freeCap(L){const nb=BPS.find(b=>b>L);return nb?nb-1:200}
+function hammers(from,to){let h=0;for(let k=from+1;k<=to;k++)h+=10*k;return h}
+function mythMast(from,to){let g=0;for(let k=from+1;k<=to;k++)g+=Math.max(0,k-10);return g}
+function costEq(m,h,g){return m+h*Math.max(0,+S.cost.ham||0)+g*Math.max(0,+S.cost.myth||0)}
+function sq(k){const x=(S.conv.totals.squad||{})[k];return (x===''||x==null||isNaN(+x))?0:+x}
+function num(x){return (x===''||x==null||isNaN(+x))?0:+x}
+function invNum(x){return (x===''||x==null||isNaN(+x))?Infinity:Math.max(0,+x)}
+function eff(troop,k){return Math.max(-90,num(S.conv.totals[troop][k])+sq(k))}
+function convFactor(troop,kind){return kind==='atk'?(100+eff(troop,'leth'))/(100+eff(troop,'atk')):(100+eff(troop,'hp'))/(100+eff(troop,'def'))}
+function w(troop,st){return Math.max(0,+S.weights[troop+'_'+st]||0)}
+
+/* ---------- inputs ---------- */
+function buildGear(){
+  let h='<tr><th>Troop</th>'+SLOTS.map(s=>`<th>${s.name} <span class="mut">(${STATN[s.stat]})</span><br><span class="mut">Level · Mastery · stat</span></th>`).join('')+'</tr>';
+  TROOPS.forEach(t=>{h+=`<tr><td>${tagT(t.id)}</td>`+SLOTS.map(s=>{const k=t.id+'_'+s.id;return `<td><input type="number" min="0" max="200" data-p="${k}" data-f="L"> <input type="number" min="0" max="20" data-p="${k}" data-f="M" style="width:56px"> <span class="mut" id="st_${k}"></span></td>`}).join('')+'</tr>'});
+  $('gearTable').innerHTML=h;
+  document.querySelectorAll('[data-p]').forEach(el=>{el.value=S.pieces[el.dataset.p][el.dataset.f];
+    el.addEventListener('input',()=>{let v=parseInt(el.value);if(isNaN(v))return;S.pieces[el.dataset.p][el.dataset.f]=v;run()});
+    el.addEventListener('blur',()=>{el.value=S.pieces[el.dataset.p][el.dataset.f]})});
+}
+function buildWeights(){
+  const order=[['inf','hp'],['arch','leth'],['cav','leth'],['cav','hp'],['inf','leth'],['arch','hp']];
+  $('wTable').innerHTML='<tr><th>#</th><th>Stat</th><th>Weight</th><th class="num">Current gear total</th></tr>'+order.map(([t,s],i)=>`<tr><td>${i+1}</td><td>${tagT(t)} ${STATN[s]}</td><td><input type="number" step="0.05" min="0" data-w="${t}_${s}"></td><td class="num" id="tot_${t}_${s}"></td></tr>`).join('');
+  document.querySelectorAll('[data-w]').forEach(el=>{el.value=S.weights[el.dataset.w];el.addEventListener('input',()=>{S.weights[el.dataset.w]=parseFloat(el.value)||0;S.preset='custom';renderWNote();run()})});
+  renderWNote();
+}
+function renderWNote(){
+  const p=PRESETS[S.preset||'default'];
+  const head='<p style="margin:6px 0">A troop&#39;s <b>Lethality weight</b> is roughly its share of your march&#39;s damage, and its <b>Health weight</b> is its share of damage absorbed and of how long the march keeps fighting. In expedition battles, infantry is the front row, cavalry the middle and archers the back. Every turn both sides attack at the same time, normally hitting the front row first. At higher tiers, cavalry has a chance to bypass the front and hit archers directly.</p>';
+  $('wNote').innerHTML=head+(p?`<p style="margin:6px 0"><b>${p.label}</b></p>`+p.why.map(x=>'• '+x).join('<br>'):'<p><b>Custom weights.</b> Press Default values to restore the recommended weights.</p>');
+}
+function buildConv(){
+  const h='<p class="note" style="margin:0 0 6px">Your Expedition bonuses in % from the in-game Bonus Overview. Blank = 0.</p><details class="info" style="margin:0 0 8px"><summary>ℹ What to enter</summary><div class="note">Use your current totals, with current gear included. Put the <b>Squad</b> bonuses (Squad Attack, Squad Lethality and so on, which apply to every troop) in the first row, and each troop&#39;s <b>own</b> bonuses in its row. They are added together, so do not include the squad part in the troop rows. The last two columns show what +1% Attack or Defense from an imbue is worth compared with +1% Lethality or Health, given your current stats.</div></details><div class="scroll"><table><tr><th>Troop</th><th>Attack %</th><th>Defense %</th><th>Health %</th><th>Lethality %</th><th class="num">+1% Atk = ×Leth</th><th class="num">+1% Def = ×HP</th></tr>'+
+    '<tr><td><span class="tag" style="background:var(--acc)">Squad</span></td>'+['atk','def','hp','leth'].map(k=>`<td><input type="number" class="w" data-ct="squad" data-ck="${k}" placeholder="0"></td>`).join('')+'<td></td><td></td></tr>'+
+    TROOPS.map(t=>`<tr><td>${tagT(t.id)}</td>`+['atk','def','hp','leth'].map(k=>`<td><input type="number" class="w" data-ct="${t.id}" data-ck="${k}" placeholder="0"></td>`).join('')+`<td class="num" id="cf_${t.id}_atk"></td><td class="num" id="cf_${t.id}_def"></td></tr>`).join('')+'<tr><td class="mut">Effective total</td><td colspan="6" class="mut" id="effLine"></td></tr></table></div>'+
+    '<div class="row" style="margin-top:8px"><label>Defense effectiveness vs Health: <input type="number" step="0.05" min="0" id="c_k"> ×</label><span class="note">1.0 = equal (pure formula). Below 1 favors Health.</span></div><div id="convWarn" class="warn note"></div>';
+  $('convBox').innerHTML=h;
+  $('c_k').value=S.conv.k??1;$('c_k').oninput=e=>{S.conv.k=parseFloat(e.target.value);if(isNaN(S.conv.k))S.conv.k=1;run()};
+  document.querySelectorAll('[data-ct]').forEach(el=>{el.value=S.conv.totals[el.dataset.ct][el.dataset.ck];el.oninput=()=>{S.conv.totals[el.dataset.ct][el.dataset.ck]=el.value;run()}});
+}
+function buildData(){
+  const d=S.data;
+  $('bpTable').innerHTML='<tr><th>Level</th><th>Mithril</th><th>Mythic gear</th><th>Mastery needed</th></tr>'+BPS.map(b=>`<tr><td>+${b}${b===101?' <span class="mut">ascend</span>':''}</td><td><input type="number" data-bp="${b}" data-bk="mith"></td><td><input type="number" data-bp="${b}" data-bk="myth"></td><td><input type="number" data-bp="${b}" data-bk="req"></td></tr>`).join('');
+  document.querySelectorAll('[data-bp]').forEach(el=>{el.value=d.bp[el.dataset.bp][el.dataset.bk];el.oninput=()=>{d.bp[el.dataset.bp][el.dataset.bk]=Math.max(0,parseFloat(el.value)||0);run()}});
+  $('imbTable').innerHTML='<tr><th>Level</th><th>Helmet &amp; Chest</th><th>Gloves &amp; Boots</th></tr>'+IMB_BPS.map(b=>`<tr><td>+${b}</td>`+['HC','GB'].map(g=>`<td><select data-ig="${g}" data-ib="${b}" data-ik="k"><option value="atk">Attack</option><option value="def">Defense</option><option value="conq">Conquest</option></select> <input type="number" step="0.5" style="width:60px" data-ig="${g}" data-ib="${b}" data-ik="v">%</td>`).join('')+'</tr>').join('');
+  document.querySelectorAll('[data-ig]').forEach(el=>{const o=d.imb[el.dataset.ig][el.dataset.ib];el.value=o[el.dataset.ik];el.oninput=el.onchange=()=>{o[el.dataset.ik]=el.dataset.ik==='v'?(parseFloat(el.value)||0):el.value;run()}});
+  [['d_g0','g0'],['d_gper','gper'],['d_per','per'],['d_mast','mast']].forEach(([id,k])=>{$(id).value=d[k];$(id).oninput=e=>{d[k]=parseFloat(e.target.value)||0;run()}});
+}
+
+/* ---------- planner ---------- */
+function plan(limit){
+  const d=S.data, items=[];
+  TROOPS.forEach(t=>SLOTS.forEach(s=>{const p=S.pieces[t.id+'_'+s.id];
+    items.push({key:t.id+'_'+s.id,troop:t.id,slot:s,L:Math.min(200,Math.max(0,p.L|0)),M:Math.min(20,Math.max(0,p.M|0))})}));
+  // step 0: free levels
+  const free=[];
+  items.forEach(it=>{const cap=freeCap(it.L);
+    if(cap>it.L){const g=stat(cap,it.M)-stat(it.L,it.M);free.push({it,from:it.L,to:cap,gain:g,val:g*w(it.troop,it.slot.stat)})}
+    it.L=Math.max(it.L,cap)});
+  free.sort((a,b)=>b.val-a.val);
+  // greedy with lookahead: a piece's next N breakpoints are scored together,
+  // so a Conquest step that leads to an Expedition imbue isn't undervalued
+  let T0={};TROOPS.forEach(t=>{const x=S.conv.totals[t.id];T0[t.id]={atk:eff(t.id,'atk'),leth:eff(t.id,'leth'),def:eff(t.id,'def'),hp:eff(t.id,'hp')}});
+  free.forEach(f=>{const t=T0[f.it.troop];if(t)t[f.it.slot.stat]+=f.gain});
+  const K=Math.max(0,isNaN(+S.conv.k)?1:+S.conv.k);
+  const lg=(a,b)=>100*Math.log(Math.max(1,100+b)/Math.max(1,100+a));
+  function valueOf(it,L,M,newL,newM,im,T){
+    const gain=stat(newL,newM)-stat(L,M);
+    const t=T[it.troop];let sv,iv=0,newT=T;
+    const wo=w(it.troop,'leth'),wd=w(it.troop,'hp');
+    if(t){
+      const nt={...t};
+      if(it.slot.stat==='leth'){nt.leth+=gain;sv=wo*lg(t.leth,nt.leth)}else{nt.hp+=gain;sv=wd*lg(t.hp,nt.hp)}
+      if(im&&im.k==='atk'){nt.atk+=im.v;iv=wo*lg(t.atk,nt.atk)}else if(im&&im.k==='def'){nt.def+=im.v;iv=wd*K*lg(t.def,nt.def)}
+      newT={...T,[it.troop]:nt};
+    }else{
+      sv=gain*w(it.troop,it.slot.stat)/10;
+      if(im)iv=im.k==='atk'?im.v*convFactor(it.troop,'atk')*wo/10:im.k==='def'?im.v*convFactor(it.troop,'def')*wd/10:0;
+    }
+    return {gain,sv,iv,val:sv+iv,newT};
+  }
+  function fin(o){o.cost=costEq(o.mith,o.ham,o.myth);o.score=o.cost>0?o.val/o.cost:o.val*1e6;return o}
+  function mkBp(it,L,M,T){
+    const bp=BPS.find(b=>b>L);if(!bp)return null;
+    const info=d.bp[bp];if(M<(info.req|0))return {blocked:true,need:info.req|0};const newL=freeCap(bp);const newM=M;
+    const im=(d.imb[it.slot.grp]||{})[bp]||null;
+    const itxt=!im?'Ascension to Red':im.k==='atk'?`+${im.v}% Attack`:im.k==='def'?`+${im.v}% Defense`:`${im.t||'Conquest'} +${im.v}%`;
+    const v=valueOf(it,L,M,newL,newM,im,T);
+    return fin({kind:'lvl',it,bp,from:L,to:newL,Mfrom:M,Mto:newM,...v,itxt,conq:!!im&&im.k==='conq',asc:!im,
+      mith:info.mith||0,ham:0,myth:info.myth||0});
+  }
+  function mkMast(it,L,M,T){
+    if(M>=20||L<20)return null;
+    const v=valueOf(it,L,M,L,M+1,null,T);
+    return fin({kind:'mast',it,from:L,to:L,Mfrom:M,Mto:M+1,...v,itxt:'',conq:false,mith:0,ham:hammers(M,M+1),myth:mythMast(M,M+1)});
+  }
+  let T=T0;
+  const seq=[];let guard=0,bundleId=0;
+  while(guard++<400){
+    let best=null;
+    const consider=chain=>{if(limit){let m=0,h=0,g=0;for(const x of chain){m+=x.mith;h+=x.ham;g+=x.myth}if(m>limit.mith||h>limit.ham||g>limit.myth)return}const cv=chain.reduce((a,x)=>a+x.val,0),cc=chain.reduce((a,x)=>a+x.cost,0);const r=cc>0?cv/cc:cv*1e6;
+      if(!best||r>best.r+1e-9||(Math.abs(r-best.r)<1e-9&&cv>best.v))best={r,v:cv,c:cc,steps:chain.slice()}};
+    items.forEach(it=>{
+      // path A: mastery only
+      {let L=it.L,M=it.M,TT=T;const chain=[];
+        for(let n=0;n<10;n++){const st=mkMast(it,L,M,TT);if(!st)break;chain.push(st);M=st.Mto;TT=st.newT;consider(chain)}}
+      // path B: imbue/level steps, with any required mastery as separate steps before them
+      {let L=it.L,M=it.M,TT=T;const chain=[];
+        for(let n=0;n<6;n++){let st=mkBp(it,L,M,TT);if(!st)break;
+          while(st&&st.blocked){const ms=mkMast(it,L,M,TT);if(!ms)break;ms.prereq=true;chain.push(ms);M=ms.Mto;TT=ms.newT;st=mkBp(it,L,M,TT)}
+          if(!st||st.blocked)break;chain.push(st);L=st.to;TT=st.newT;consider(chain)}}
+    });
+    if(!best)break;
+    bundleId++;
+    best.steps.forEach((st,j)=>{st.bundle=bundleId;st.bLen=best.steps.length;st.bIdx=j;st.bRatio=best.r;st.bCost=best.c;seq.push(st)});
+    if(limit)best.steps.forEach(x=>{limit.mith-=x.mith;limit.ham-=x.ham;limit.myth-=x.myth});
+    const last=best.steps[best.steps.length-1];last.it.L=last.to;last.it.M=last.Mto;T=last.newT;
+  }
+  return {free,seq};
+}
+
+function run(){
+  save();
+  // per piece stat + warnings
+  const warns=[];const totals={};
+  TROOPS.forEach(t=>SLOTS.forEach(s=>{const k=t.id+'_'+s.id,p=S.pieces[k];
+    const Lc=Math.min(200,Math.max(0,p.L)),Mc=Math.min(20,Math.max(0,p.M));
+    const v=stat(Lc,Mc);$('st_'+k).textContent=fmt(v,1)+'%';
+    const badL=p.L<0||p.L>200,badM=p.M<0||p.M>20;
+    document.querySelector(`[data-p="${k}"][data-f="L"]`)?.classList.toggle('bad',badL);
+    document.querySelector(`[data-p="${k}"][data-f="M"]`)?.classList.toggle('bad',badM);
+    totals[t.id+'_'+s.stat]=(totals[t.id+'_'+s.stat]||0)+v;
+    const need=BPS.filter(b=>b<=Lc).reduce((m,b)=>Math.max(m,S.data.bp[b].req),0);
+    if(badL)warns.push(`${t.name} ${s.name}: level must be 0–200. Using ${Lc}.`);
+    if(badM)warns.push(`${t.name} ${s.name}: mastery must be 0–20.`);
+    else if(p.M>0&&Lc<20)warns.push(`${t.name} ${s.name}: Mastery Forging unlocks at +20, but the level is +${Lc}.`);
+    else if(p.M<need)warns.push(`${t.name} ${s.name}: +${Lc} needs Mastery ${need}, but you entered ${p.M}. Check the level or the mastery.`)}));
+  $('gearWarn').innerHTML=warns.join('<br>');
+  Object.keys(totals).forEach(k=>{const el=$('tot_'+k);if(el)el.textContent=fmt(totals[k],1)+'%'});
+  $('effLine').innerHTML=TROOPS.map(t=>`${t.name}: `+['atk','def','hp','leth'].map(k=>`${k==='atk'?'Atk':k==='leth'?'Leth':k==='def'?'Def':'HP'} ${fmt(eff(t.id,k),1)}%`).join(' · ')).join('<br>');
+  TROOPS.forEach(t=>{['atk','def'].forEach(k=>{$(`cf_${t.id}_${k}`).textContent=fmt(convFactor(t.id,k)*(k==='def'?(S.conv.k??1):1),2)+'×'})});
+  const empty=TROOPS.filter(t=>['atk','leth','def','hp'].every(k=>num(S.conv.totals[t.id][k])===0)).map(t=>t.name);
+  $('convWarn').textContent=empty.length?`No stats entered for ${empty.join(', ')}. The ranking is rough until you fill them in.`:'';
+
+  const inv={};['mith','ham','myth'].forEach(k=>inv[k]=invNum(S.inv[k]));
+  const hasInv=Object.values(inv).some(x=>x!==Infinity);
+  const spendAll=S.mode==='all';
+  const lim=spendAll?{...inv}:null;
+  const {free,seq}=plan(lim);
+  // free
+  $('free').innerHTML=free.length?'<div class="scroll"><table><tr><th>Piece</th><th>Levels</th><th class="num">Stat gain</th></tr>'+free.map(f=>`<tr><td>${tagT(f.it.troop)} ${f.it.slot.name} <span class="mut">${STATN[f.it.slot.stat]}</span></td><td>+${f.from} → +${f.to}</td><td class="num">+${fmt(f.gain,2)}%</td></tr>`).join('')+'</table></div><p class="note">Do these first. They only cost XP (not counted), so they are not ranked.</p>':'<p class="mut">None. Every piece is already at the cap of its current band.</p>';
+  $('modeNote').innerHTML=spendAll?(hasInv?'<b>Spend all:</b> the best plan your current stock can pay for, using up as much as possible.':'<span class="warn">Enter what you have (Mithril, hammers, Mythic gear) to use Spend all. With blank stock it plans everything, the same as Ideal spend.</span>'):'<b>Ideal spend:</b> the long-term best order. Green rows are the next upgrades you can already afford.';
+  let cm=0,ch=0,cg=0,ok=true,inb=0;
+  let h='<tr><th>#</th><th>Piece</th><th>Upgrade</th><th class="num">Mithril</th><th class="num">Hammers</th><th class="num">Mythic</th><th class="num">Cost<br>(Mith-eq)</th><th>Imbue</th><th class="num">Stat gain</th><th class="num">Value</th><th class="num">Value / cost</th><th class="num">Running total<br>Mith · Ham · Myth</th></tr>';
+  const LIMIT=S.showAll?Infinity:30;
+  seq.forEach((c,i)=>{cm+=c.mith;ch+=c.ham;cg+=c.myth;
+    if(ok&&!(cm<=inv.mith&&ch<=inv.ham&&cg<=inv.myth))ok=false;
+    const fits=spendAll?hasInv:(hasInv&&ok);if(fits)inb++;
+    const up=c.kind==='mast'?`<div class="nw"><span class="pill">Mastery</span> M${c.Mfrom} → M${c.Mto}</div>${c.prereq?`<div class="mut sm">required for the next step</div>`:''}`:`<div class="nw"><span class="pill exp">${c.asc?'Ascend':'Imbue'}</span> +${c.from} → +${c.to}</div>`;
+    const imb=c.kind==='mast'?'<span class="mut">—</span>':c.asc?'<span class="mut sm">Becomes Red</span>':`<span class="pill ${c.conq?'':'exp'}">${c.itxt}${c.conq?' (ignored)':''}</span>`;
+    if(i>=LIMIT)return;
+    h+=`<tr class="${fits?'inbud':''} ${i<3?'top':''}"><td>${i+1}</td><td><div class="nw">${tagT(c.it.troop)} ${c.it.slot.name}</div><div class="mut sm">${STATN[c.it.slot.stat]}</div></td><td>${up}</td><td class="num">${c.mith||'·'}</td><td class="num">${c.ham||'·'}</td><td class="num">${c.myth||'·'}</td><td class="num">${fmt(c.cost,1)}</td><td>${imb}</td><td class="num">+${fmt(c.gain,2)}%</td><td class="num">${fmt(c.val,2)}${c.iv?`<br><span class="mut" style="font-size:11px">stat ${fmt(c.sv,1)} + imbue ${fmt(c.iv,1)}</span>`:''}</td><td class="num"><b>${fmt(c.bLen>1?c.bRatio:c.score,3)}</b>${c.bLen>1?`<br><span class="mut" style="font-size:11px">package ${c.bIdx+1}/${c.bLen} · cost ${fmt(c.bCost,0)}<br>this step alone ${fmt(c.score,3)}</span>`:''}</td><td class="num mut" style="font-size:12px">${cm} · ${ch.toLocaleString()} · ${cg}</td></tr>`});
+  $('moreBox').innerHTML=seq.length>30?`<button class="btn" id="moreBtn">${S.showAll?'Show first 30 only':'Show all '+seq.length+' upgrades'}</button>`:'';
+  if($('moreBtn'))$('moreBtn').onclick=()=>{S.showAll=!S.showAll;run()};
+  $('seq').innerHTML=seq.length?h:'<tr><td class="good">All 12 pieces are at Red +200 / M20. Nothing left to upgrade.</td></tr>';
+  const nxt=seq[0];
+  const nm=c=>`${TROOPS.find(x=>x.id===c.it.troop).name} ${c.it.slot.name} ${c.kind==='mast'?'M'+c.Mto:c.asc?'ascend to Red':'→ +'+c.bp}`;
+  const aff=seq.slice(0,inb);
+  $('kpis').innerHTML=`<div class="kpi"><span>Next upgrade</span><b style="font-size:15px">${nxt?nm(nxt):'—'}</b><span>${nxt?[nxt.mith&&nxt.mith+' Mithril',nxt.ham&&nxt.ham+' hammers',nxt.myth&&nxt.myth+' Mythic'].filter(Boolean).join(' · '):''}</span></div>
+  ${spendAll&&hasInv?`<div class="kpi"><span>Left over after plan</span><b style="font-size:15px">${lim.mith===Infinity?'∞':lim.mith} Mith · ${lim.ham===Infinity?'∞':lim.ham.toLocaleString()} Ham · ${lim.myth===Infinity?'∞':lim.myth} Myth</b></div>`:''}
+  <div class="kpi"><span>${spendAll&&hasInv?'Plan uses':'To max everything (+200, M20)'}</span><b style="font-size:15px">${cm} Mith · ${ch.toLocaleString()} Ham · ${cg} Myth</b></div>
+  ${hasInv?`<div class="kpi"><span>${spendAll?'Steps in plan':'Steps you can afford now'}</span><b>${inb}</b><span>${aff.reduce((a,c)=>a+c.mith,0)} Mith · ${aff.reduce((a,c)=>a+c.ham,0)} Ham · ${aff.reduce((a,c)=>a+c.myth,0)} Myth</span></div>`:''}`;
+}
+
+function bindRes(){
+  document.querySelectorAll('[name=spmode]').forEach(r=>{r.checked=r.value===(S.mode||'ideal');r.onchange=()=>{S.mode=r.value;run()}});
+  [['cv_ham','cost','ham'],['cv_myth','cost','myth'],['inv_mith','inv','mith'],['inv_ham','inv','ham'],['inv_myth','inv','myth']].forEach(([id,g,k])=>{
+    $(id).value=S[g][k];$(id).oninput=e=>{S[g][k]=g==='cost'?(parseFloat(e.target.value)||0):e.target.value;run()}});
+}
+const RESET={
+  gear:()=>{S.pieces=defaults().pieces;buildGear()},
+  weights:()=>{S.weights=DEFW();S.preset='default';buildWeights()},
+  stats:()=>{S.conv=defaults().conv;buildConv()},
+  spend:()=>{const d=defaults();S.cost=d.cost;S.inv=d.inv;S.mode='ideal';bindRes()},
+  data:()=>{S.data=defaults().data;buildData()}
+};
+document.querySelectorAll('[data-reset]').forEach(b=>b.onclick=()=>{RESET[b.dataset.reset]();run()});
+function applyPreset(p){S.weights={...PRESETS[p].w};S.preset=p;buildWeights();run()}
+function b64e(str){return btoa(unescape(encodeURIComponent(str)))}
+function b64d(str){return decodeURIComponent(escape(atob(str.trim())))}
+$('expBtn').onclick=()=>{$('ioBox').style.display='';$('ioText').value='KSRG1:'+b64e(JSON.stringify(S));$('ioApply').style.display='none';$('ioCopy').style.display='';$('ioMsg').textContent='This code holds your whole setup. Copy it and send it, or keep it as a backup.';$('ioText').select()};
+$('impBtn').onclick=()=>{$('ioBox').style.display='';$('ioText').value='';$('ioApply').style.display='';$('ioCopy').style.display='none';$('ioMsg').textContent='Paste a setup code, then press Load this setup.';$('ioText').focus()};
+$('ioClose').onclick=()=>{$('ioBox').style.display='none';$('ioMsg').textContent=''};
+$('ioCopy').onclick=()=>{const t=$('ioText');t.select();
+  const done=()=>$('ioMsg').textContent='Copied.';
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t.value).then(done,()=>{try{document.execCommand('copy');done()}catch(e){$('ioMsg').textContent='Select the text and copy it manually.'}})}
+  else{try{document.execCommand('copy');done()}catch(e){$('ioMsg').textContent='Select the text and copy it manually.'}}};
+$('ioApply').onclick=()=>{try{let v=$('ioText').value.trim();if(v.startsWith('KSRG1:'))v=v.slice(6);const o=JSON.parse(b64d(v));
+  if(!isObj(o)||!isObj(o.pieces))throw 0;S=normalize(o);
+  init();$('ioBox').style.display='none';$('ioMsg').textContent='Setup loaded.'}catch(e){$('ioMsg').textContent='That code is not valid.'}};
+function init(){buildGear();buildWeights();buildConv();buildData();bindRes();run()}
+init();
+</script>
+</body>
+</html>
