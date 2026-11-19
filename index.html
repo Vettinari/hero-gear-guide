@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kingshot Red Gear Planner</title>
+<title>Astartes Red Gear Planner</title>
 <style>
 :root{--bg:#f6f5f2;--card:#fff;--ink:#1d1c1a;--mut:#6b675f;--line:#e4e1da;--acc:#b3261e;--acc2:#7a1a14;--good:#1f6f43;--warn:#9a6200;--inf:#3b5b92;--cav:#8a5a17;--arch:#2f7a55}
 @media (prefers-color-scheme:dark){:root{--bg:#161514;--card:#201f1d;--ink:#ece9e3;--mut:#a19c92;--line:#34322e;--acc:#e0574d;--acc2:#ff8a80;--good:#5fc08a;--warn:#e0a640;--inf:#7ea2e0;--cav:#d9a253;--arch:#6cc596}}
@@ -95,7 +95,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(
   <div class="card">
     <div class="row" style="justify-content:space-between"><h2 style="margin:0">3 · Governor stats &amp; imbue value</h2><button class="btn" data-reset="stats">Default values</button></div>
     <div id="convBox"></div>
-    <details class="info"><summary>ℹ How stats are valued</summary><div class="note">The planner uses the multiplicative model, where damage dealt ∝ (1+Atk)(1+Leth) and damage taken ∝ 1 ÷ (1+Def)(1+HP). Each upgrade is scored by how much it raises that troop's <i>offense</i> (Atk × Leth) and <i>survival</i> (Def × HP), so whichever stat is lower gets the bigger boost. That keeps Attack/Lethality and Defense/Health balanced. Your totals are updated after every planned step, so returns diminish. The Lethality weight of a troop is used as its offense weight and the Health weight as its survival weight. Conquest bonuses are ignored.</div></details>
+    <details class="info"><summary>ℹ How stats are valued</summary><div class="note">The planner uses the multiplicative model, where damage dealt ∝ (1+Atk)(1+Leth) and damage taken ∝ 1 ÷ (1+Def)(1+HP). Each upgrade is scored by how much it raises that troop's <i>offense</i> (Atk × Leth) and <i>survival</i> (Def × HP), Attack and Lethality count equally, and so do Defense and Health. So whichever stat of a pair is lower gets the bigger boost, which always pushes Attack toward Lethality and Defense toward Health. Your totals are updated after every planned step, so returns diminish. The Lethality weight of a troop is used as its offense weight and the Health weight as its survival weight. Conquest bonuses are ignored.</div></details>
   </div>
 
 <div class="card">
@@ -175,7 +175,7 @@ function defaults(){
   return {pieces,
     weights:DEFW(),
     preset:'default',mode:'ideal',
-    conv:{k:1,totals:{squad:{atk:'',leth:'',def:'',hp:''},inf:{atk:'',leth:'',def:'',hp:''},cav:{atk:'',leth:'',def:'',hp:''},arch:{atk:'',leth:'',def:'',hp:''}}},
+    conv:{totals:{squad:{atk:'',leth:'',def:'',hp:''},inf:{atk:'',leth:'',def:'',hp:''},cav:{atk:'',leth:'',def:'',hp:''},arch:{atk:'',leth:'',def:'',hp:''}}},
     cost:{ham:0.25,myth:1.2},inv:{mith:'',ham:'',myth:''},
     data:{g0:15,gper:0.35,per:0.5,mast:0.1,
       bp:{101:{mith:0,myth:2,req:10},120:{mith:10,myth:3,req:11},140:{mith:20,myth:5,req:12},160:{mith:30,myth:5,req:13},180:{mith:40,myth:10,req:14},200:{mith:50,myth:10,req:15}},
@@ -241,9 +241,8 @@ function buildConv(){
   const h='<p class="note" style="margin:0 0 6px">Your Expedition bonuses in % from the in-game Bonus Overview. Blank = 0.</p><details class="info" style="margin:0 0 8px"><summary>ℹ What to enter</summary><div class="note">Use your current totals, with current gear included. Put the <b>Squad</b> bonuses (Squad Attack, Squad Lethality and so on, which apply to every troop) in the first row, and each troop&#39;s <b>own</b> bonuses in its row. They are added together, so do not include the squad part in the troop rows. The last two columns show what +1% Attack or Defense from an imbue is worth compared with +1% Lethality or Health, given your current stats.</div></details><div class="scroll"><table><tr><th>Troop</th><th>Attack %</th><th>Defense %</th><th>Health %</th><th>Lethality %</th><th class="num">+1% Atk = ×Leth</th><th class="num">+1% Def = ×HP</th></tr>'+
     '<tr><td><span class="tag" style="background:var(--acc)">Squad</span></td>'+['atk','def','hp','leth'].map(k=>`<td><input type="number" class="w" data-ct="squad" data-ck="${k}" placeholder="0"></td>`).join('')+'<td></td><td></td></tr>'+
     TROOPS.map(t=>`<tr><td>${tagT(t.id)}</td>`+['atk','def','hp','leth'].map(k=>`<td><input type="number" class="w" data-ct="${t.id}" data-ck="${k}" placeholder="0"></td>`).join('')+`<td class="num" id="cf_${t.id}_atk"></td><td class="num" id="cf_${t.id}_def"></td></tr>`).join('')+'<tr><td class="mut">Effective total</td><td colspan="6" class="mut" id="effLine"></td></tr></table></div>'+
-    '<div class="row" style="margin-top:8px"><label>Defense effectiveness vs Health: <input type="number" step="0.05" min="0" id="c_k"> ×</label><span class="note">1.0 = equal (pure formula). Below 1 favors Health.</span></div><div id="convWarn" class="warn note"></div>';
+    '<div id="convWarn" class="warn note"></div>';
   $('convBox').innerHTML=h;
-  $('c_k').value=S.conv.k??1;$('c_k').oninput=e=>{S.conv.k=parseFloat(e.target.value);if(isNaN(S.conv.k))S.conv.k=1;run()};
   document.querySelectorAll('[data-ct]').forEach(el=>{el.value=S.conv.totals[el.dataset.ct][el.dataset.ck];el.oninput=()=>{S.conv.totals[el.dataset.ct][el.dataset.ck]=el.value;run()}});
 }
 function buildData(){
@@ -270,7 +269,6 @@ function plan(limit){
   // so a Conquest step that leads to an Expedition imbue isn't undervalued
   let T0={};TROOPS.forEach(t=>{const x=S.conv.totals[t.id];T0[t.id]={atk:eff(t.id,'atk'),leth:eff(t.id,'leth'),def:eff(t.id,'def'),hp:eff(t.id,'hp')}});
   free.forEach(f=>{const t=T0[f.it.troop];if(t)t[f.it.slot.stat]+=f.gain});
-  const K=Math.max(0,isNaN(+S.conv.k)?1:+S.conv.k);
   const lg=(a,b)=>100*Math.log(Math.max(1,100+b)/Math.max(1,100+a));
   function valueOf(it,L,M,newL,newM,im,T){
     const gain=stat(newL,newM)-stat(L,M);
@@ -279,7 +277,7 @@ function plan(limit){
     if(t){
       const nt={...t};
       if(it.slot.stat==='leth'){nt.leth+=gain;sv=wo*lg(t.leth,nt.leth)}else{nt.hp+=gain;sv=wd*lg(t.hp,nt.hp)}
-      if(im&&im.k==='atk'){nt.atk+=im.v;iv=wo*lg(t.atk,nt.atk)}else if(im&&im.k==='def'){nt.def+=im.v;iv=wd*K*lg(t.def,nt.def)}
+      if(im&&im.k==='atk'){nt.atk+=im.v;iv=wo*lg(t.atk,nt.atk)}else if(im&&im.k==='def'){nt.def+=im.v;iv=wd*lg(t.def,nt.def)}
       newT={...T,[it.troop]:nt};
     }else{
       sv=gain*w(it.troop,it.slot.stat)/10;
@@ -346,7 +344,7 @@ function run(){
   $('gearWarn').innerHTML=warns.join('<br>');
   Object.keys(totals).forEach(k=>{const el=$('tot_'+k);if(el)el.textContent=fmt(totals[k],1)+'%'});
   $('effLine').innerHTML=TROOPS.map(t=>`${t.name}: `+['atk','def','hp','leth'].map(k=>`${k==='atk'?'Atk':k==='leth'?'Leth':k==='def'?'Def':'HP'} ${fmt(eff(t.id,k),1)}%`).join(' · ')).join('<br>');
-  TROOPS.forEach(t=>{['atk','def'].forEach(k=>{$(`cf_${t.id}_${k}`).textContent=fmt(convFactor(t.id,k)*(k==='def'?(S.conv.k??1):1),2)+'×'})});
+  TROOPS.forEach(t=>{['atk','def'].forEach(k=>{$(`cf_${t.id}_${k}`).textContent=fmt(convFactor(t.id,k),2)+'×'})});
   const empty=TROOPS.filter(t=>['atk','leth','def','hp'].every(k=>num(S.conv.totals[t.id][k])===0)).map(t=>t.name);
   $('convWarn').textContent=empty.length?`No stats entered for ${empty.join(', ')}. The ranking is rough until you fill them in.`:'';
 
